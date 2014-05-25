@@ -49,6 +49,8 @@ namespace sdkMicrophoneCS
         // SkyDrive session
         private LiveConnectClient client;
 
+        private System.Threading.CancellationTokenSource ctsUpload;
+
         /// <summary>
         /// Constructor 
         /// </summary>
@@ -233,7 +235,9 @@ namespace sdkMicrophoneCS
             IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForApplication();
 
             // we give our file a filename
-            strSaveName = "myFile.wav";
+           // strSaveName = "audio_" + DateTime.Now.ToString("ss_mm_hh_dd_MM_yy") + ".wav";
+            strSaveName = "audio_" + DateTime.Now.ToString("yy_MM_dd_hh_mm_ss") + ".wav";
+
 
             // if that file exists... 
             if (isf.FileExists(strSaveName))
@@ -362,14 +366,9 @@ namespace sdkMicrophoneCS
                     try
                     {
 
-                        var reqList = this.client.GetPendingBackgroundUploads();
-
-                        foreach (var req in reqList)
-                        {
-                            await this.client.DeleteAsync("/shared/transfers/" + strSaveName);
-                        }
-
-                        LiveOperationResult res = await this.client.BackgroundUploadAsync("me/skydrive", new Uri("/shared/transfers/" + strSaveName, UriKind.Relative) , OverwriteOption.Overwrite);
+                        //LiveOperationResult uploadOperation = await client.BackgroundUploadAsync("me/skydrive", new Uri("/shared/transfers/" + strSaveName, UriKind.Relative), OverwriteOption.Overwrite);
+                        LiveOperationResult uploadOperation = await this.client.UploadAsync("me/skydrive", strSaveName, fileStream, OverwriteOption.Overwrite);
+                        //LiveOperationResult uploadResult = await uploadOperation.StartAsync();
                         textOutput.Text = "File " + strSaveName + " uploaded";
                     }
 
