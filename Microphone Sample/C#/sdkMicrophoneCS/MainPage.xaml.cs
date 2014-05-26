@@ -41,6 +41,9 @@ namespace sdkMicrophoneCS
         // we give our file a filename
         private string strSaveName;
 
+        //Scale the volume
+       // byte volumeScale = 2;
+
         // Status images
         private BitmapImage blankImage;
         private BitmapImage microphoneImage;
@@ -235,9 +238,7 @@ namespace sdkMicrophoneCS
             IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForApplication();
 
             // we give our file a filename
-           // strSaveName = "audio_" + DateTime.Now.ToString("ss_mm_hh_dd_MM_yy") + ".wav";
             strSaveName = "audio_" + DateTime.Now.ToString("yy_MM_dd_hh_mm_ss") + ".wav";
-
 
             // if that file exists... 
             if (isf.FileExists(strSaveName))
@@ -250,6 +251,15 @@ namespace sdkMicrophoneCS
             IsolatedStorageFileStream isfStream =
                      new IsolatedStorageFileStream(strSaveName,
                      FileMode.Create, IsolatedStorageFile.GetUserStoreForApplication());
+
+            //scale the audio up
+            /*
+            var tempArray = stream.ToArray();
+            for (int i = 0; i < tempArray.Length; i++)
+            {
+                tempArray[i] = (tempArray[i] * (byte)2);
+            }
+            */
 
             isfStream.Write(stream.ToArray(), 0, stream.ToArray().Length);
 
