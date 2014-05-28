@@ -44,13 +44,14 @@
             <TextBlock x:Name="ApplicationTitle" Text="WINDOWS PHONE MICROPHONE SAMPLE" Style="{StaticResource PhoneTextNormalStyle}"/>
             <TextBlock x:Name="UserHelp" Text="press record" Margin="9,-7,0,0" Style="{StaticResource PhoneTextTitle1Style}" Height="200" />
         </StackPanel>
-        <Image x:Name="StatusImage" Height="334" Width="366" 
+        <Image x:Name="StatusImage" Height="118" Width="188" 
                HorizontalAlignment="Center" VerticalAlignment="Center"
-               Source="Images/blank.png" Margin="54,210,60,152" Grid.RowSpan="2" />
-        <Controls:SignInButton HorizontalAlignment="Left" Margin="10,315,0,0" Grid.Row="1" VerticalAlignment="Top" Content="Button" Name="skydrive" Scopes="wl.basic wl.signin wl.offline_access wl.skydrive_update" SessionChanged="skydrive_SessionChanged" ClientId="00000000480D3C22"/>
+               Source="Images/blank.png" Margin="252,10,40,303" Grid.Row="1" />
+        <Controls:SignInButton HorizontalAlignment="Left" Margin="10,301,0,0" Grid.Row="1" VerticalAlignment="Top" Content="Button" Name="skydrive" Scopes="wl.basic wl.signin wl.offline_access wl.skydrive_update" SessionChanged="skydrive_SessionChanged" ClientId="00000000480D3C22" Height="99"/>
        
         
-        <TextBlock x:Name="textOutput" HorizontalAlignment="Left" Margin="196,284,0,0" Grid.Row="1" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="261" Height="137"/>
+        <TextBlock x:Name="textOutput" HorizontalAlignment="Left" Margin="181,301,0,0" Grid.Row="1" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="272" Height="99"/>
+        <TextBlock x:Name="textOutTranscript" HorizontalAlignment="Left" Margin="30,10,0,0" Grid.Row="1" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Height="286" Width="410"/>
         <!--ContentPanel - place additional content here-->
     </Grid>
 

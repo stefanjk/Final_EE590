@@ -40,7 +40,7 @@ using Newtonsoft.Json;
 
 namespace sdkMicrophoneCS
 {
-///////////this is code for google stuff//////////////////
+    ///////////this is code for google stuff//////////////////
     // These classes made from http://json2csharp.com/
     public class Alternative
     {
@@ -61,7 +61,7 @@ namespace sdkMicrophoneCS
         public List<Result> result { get; set; }
         public int result_index { get; set; }
     }
-/// ///////this is code for google stuff///////////////////
+    /// ///////this is code for google stuff///////////////////
 
     public partial class MainPage : PhoneApplicationPage
     {
@@ -75,7 +75,7 @@ namespace sdkMicrophoneCS
         private string strSaveName;
 
         //Scale the volume
-        // byte volumeScale = 2;
+        int volumeScale = 1;
 
         // Status images
         private BitmapImage blankImage;
@@ -85,7 +85,7 @@ namespace sdkMicrophoneCS
         // SkyDrive session
         private LiveConnectClient client;
 
-//////This is code for google stuff//////////////////////////
+        //////This is code for google stuff//////////////////////////
         // This is the object we'll record data into
         private libFLAC lf = new libFLAC();
         private SoundIO sio = new SoundIO();
@@ -97,7 +97,7 @@ namespace sdkMicrophoneCS
 
         // This is our flag as to whether or not we're currently recording
         private bool recording = false;
-//////This is code for google stuff//////////////////////////
+        //////This is code for google stuff//////////////////////////
 
         /// <summary>
         /// Constructor 
@@ -163,8 +163,17 @@ namespace sdkMicrophoneCS
             // Retrieve audio data
             microphone.GetData(buffer);
 
+            //scale the audio up
+            var tempArray = buffer;
+            for (int i = 0; i < tempArray.Length; i++)
+            {
+                tempArray[i] = (byte)((int)tempArray[i] * volumeScale);
+            }
+
             // Store the audio data in a stream
-            stream.Write(buffer, 0, buffer.Length);
+            //stream.Write(buffer, 0, buffer.Length);
+            stream.Write(tempArray, 0, tempArray.Length);
+
         }
 
         /// <summary>
@@ -193,6 +202,10 @@ namespace sdkMicrophoneCS
             SetButtonStates(false, false, true);
             UserHelp.Text = "record";
             StatusImage.Source = microphoneImage;
+
+            //google stuff
+            startRecording();
+
         }
 
         /// <summary>
@@ -212,6 +225,10 @@ namespace sdkMicrophoneCS
                 SaveToIsolatedStorage();
                 uploadFile();
 
+                //google stuff
+                stopRecording();
+
+
             }
             else if (soundInstance.State == SoundState.Playing)
             {
@@ -223,8 +240,6 @@ namespace sdkMicrophoneCS
             SetButtonStates(true, true, false);
             UserHelp.Text = "ready";
             StatusImage.Source = blankImage;
-
-            //Upload();
 
         }
 
@@ -296,15 +311,6 @@ namespace sdkMicrophoneCS
             IsolatedStorageFileStream isfStream =
                      new IsolatedStorageFileStream(strSaveName,
                      FileMode.Create, IsolatedStorageFile.GetUserStoreForApplication());
-
-            //scale the audio up
-            /*
-            var tempArray = stream.ToArray();
-            for (int i = 0; i < tempArray.Length; i++)
-            {
-                tempArray[i] = (tempArray[i] * (byte)2);
-            }
-            */
 
             isfStream.Write(stream.ToArray(), 0, stream.ToArray().Length);
 
@@ -435,7 +441,8 @@ namespace sdkMicrophoneCS
         }
 
 
-///////this is the google code part
+
+        ///////this is the google code part
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -446,7 +453,6 @@ namespace sdkMicrophoneCS
             sio.start();
         }
 
-
         void sio_audioInEvent(float[] data)
         {
             // Only do something if we're recording right now
@@ -455,16 +461,16 @@ namespace sdkMicrophoneCS
                 // If we are recording, throw our data into our recordedAudio list
                 recordedAudio.Add(data);
 
-
-              /*  // Update progress bar
+                /*
+                // Update progress bar
                 Dispatcher.BeginInvoke(() =>
                 {
                     progress.Value = recordedAudio.Count / 10.0;
                 });
-*/
+                */
 
                 // If we're reached our maximum recording limit....
-                if (recordedAudio.Count == 1000)
+                if (recordedAudio.Count == 250)
                 {
                     // We stop ourselves! :P
                     stopRecording();
@@ -472,15 +478,13 @@ namespace sdkMicrophoneCS
             }
         }
 
-
         // This gets called when the button gets pressed while it says "Go"
         private void startRecording()
         {
             this.recording = true;
-           // this.goButton.Content = "Stop";
-           // this.textOutput.Text = "Recording...";
+            // this.goButton.Content = "Stop";
+            // this.textOutput.Text = "Recording...";
         }
-
 
         // This gets called when the button gets pressed while it says "Stop" or when we reach
         // our maximum buffer amount (set to 10 seconds right now)
@@ -493,12 +497,11 @@ namespace sdkMicrophoneCS
             Dispatcher.BeginInvoke(() =>
             {
                 this.textOutput.Text = "Processing...";
-              //  this.progress.Value = 0;
-             //   this.goButton.Content = "Go";
+                //  this.progress.Value = 0;
+                //   this.goButton.Content = "Go";
                 processData();
             });
         }
-
 
         // This is a utility to take a list of arrays and mash them all together into one large array
         private T[] flattenList<T>(List<T[]> list)
@@ -528,16 +531,13 @@ namespace sdkMicrophoneCS
             return ret;
         }
 
-
         private async void processData()
         {
             // First, convert our list of audio chunks into a flattened single array
             float[] rawData = flattenList(recordedAudio);
 
-
             // Once we've done that, we can clear this out no problem
             recordedAudio.Clear();
-
 
             // Next, convert the data into FLAC:
             byte[] flacData = null;
@@ -546,26 +546,26 @@ namespace sdkMicrophoneCS
             // Upload it to the server and get a response!
             RecognitionResult result = await recognizeSpeech(flacData, sio.getInputSampleRate());
 
-
             // Check to make sure everything went okay, if it didn't, check the debug log!
             if (result.result.Count != 0)
             {
                 // This is just some fancy code to display each hypothesis as sone text that gets redder
                 // as our confidence goes down; note that I've never managed to get multiple hypotheses
-                this.textOutput.Inlines.Clear();
+                this.textOutTranscript.Inlines.Clear();
                 foreach (var alternative in result.result[0].alternative)
                 {
                     Run run = new Run();
                     run.Text = alternative.transcript + "\n\n";
                     byte bg = (byte)(alternative.confidence * 255);
-                    run.Foreground = new SolidColorBrush(Color.FromArgb(255, 255, bg, bg));
-                    textOutput.Inlines.Add(run);
+                    run.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 255, bg, bg));
+                    textOutTranscript.Inlines.Add(run);
                 }
             }
             else
             {
-                textOutput.Text = "Errored out!";
+                textOutTranscript.Text = "Errored out!";
             }
+
         }
 
 
@@ -641,7 +641,7 @@ namespace sdkMicrophoneCS
             return new RecognitionResult();
         }
 
-
+        /*
         private void goButton_Click(object sender, RoutedEventArgs e)
         {
             if (this.recording)
@@ -654,7 +654,6 @@ namespace sdkMicrophoneCS
             }
         }
 
-
-
+        */
     }
 }
